@@ -1,0 +1,10 @@
+process.env.JIRA_API_URL = 'https://example.com';
+process.env.JIRA_URL = 'https://example.com';
+process.env.JIRA_TOKEN = 'JIRA';
+process.env.JIRA_COMPONENT_ID = 'componentId';
+process.env.JIRA_EPIC_LINK = 'jiraEpicLink';
+process.env.JIRA_EPIC_URL = 'jiraEpicUrl';
+process.env.VONAGE_APP_ID = 'vonageAppId';
+process.env.VONAGE_PRIVATE_KEY = 'vonagePrivateKey';
+process.env.OT_API_KEY = 'someOpenTokKey';
+process.env.OT_API_SECRET = 'opentokAPISecret';

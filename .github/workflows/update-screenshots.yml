@@ -1,0 +1,122 @@
+name: update-screenshots
+
+on: [pull_request, workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  OT_API_KEY: ${{secrets.API_KEY}}
+  OT_API_SECRET: ${{secrets.API_SECRET}}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check for "update-screenshots" label
+        id: check-update-screenshots
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(label => label.name);
+            return labels.includes("update-screenshots");
+
+      - name: Update Screenshots
+        if: steps.check-update-screenshots.outputs.result == 'false'
+        run: |
+          echo "Update shreenshots is false"
+
+      - name: Install chrome latest
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+          sudo apt update && sudo apt install -y google-chrome-stable 
+          echo "Check chrome version"
+          /usr/bin/google-chrome-stable --version
+          echo "Chrome latest downloaded and installed"
+      - name: Install edge latest
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+          sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
+          sudo rm microsoft.gpg
+          sudo apt update && sudo apt install -y microsoft-edge-stable
+          echo "Check edge version"
+          /usr/bin/microsoft-edge-stable --version
+          echo "Edge latest downloaded and installed"
+      - name: install firefox latest
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          sudo apt update
+          wget -O firefoxsetup.tar.bz2 "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US"
+          sudo tar -xf firefoxsetup.tar.bz2 --directory /opt
+          echo "Check firefox version"
+          /opt/firefox/firefox --version
+          echo "Firefox latest downloaded and installed"
+      - name: install opera latest
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          sudo add-apt-repository 'deb https://deb.opera.com/opera-stable/ stable non-free'
+          wget -qO- https://deb.opera.com/archive.key | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get install opera-stable -y
+          echo "Check opera version"
+          /usr/bin/opera --version
+          echo "Opera latest downloaded and installed"
+
+      - name: Checkout
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Setup node
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          node -v
+          npm -v
+          npm install --global yarn
+          yarn
+
+      - name: Install electron dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libx11-xcb1 libxcomposite1 libxrandr2 libxdamage1 libxi6 libxtst6 libnss3 libasound2
+
+      - name: Run integration tests
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          Xvfb :99 & export DISPLAY=:99
+          yarn test:integrationUpdateScreenshots
+
+      - name: Commit files
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -a -m "Updating screenshots"
+
+      - name: Push changes
+        if: steps.check-update-screenshots.outputs.result == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}-update-screenshots
