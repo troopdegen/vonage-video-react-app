@@ -67,8 +67,6 @@ describe('RoomNameInputComponent', () => {
       });
     });
   });
-
-  // it('should set the room name if the input is valid', () => {
   //   render(
   //     <RoomNameInput
   //       setRoomName={setRoomName}
