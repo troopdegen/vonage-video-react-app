@@ -1,6 +1,7 @@
 import { SetStateAction, Dispatch, ReactElement, ChangeEvent } from 'react';
 import { InputAdornment, TextField } from '@mui/material';
 import { Keyboard } from '@mui/icons-material';
+import validateRoomName from '../../utils/validateRoomName';
 
 export type RoomNameInputProps = {
   setRoomName: Dispatch<SetStateAction<string>>;
@@ -26,12 +27,6 @@ const RoomNameInput = ({
   hasError,
   setHasError,
 }: RoomNameInputProps): ReactElement => {
-  const validateRoomName = (name: string) => {
-    // Regular expression to allow letters, numbers, underscores, and hyphens only
-    const regex = /^[a-z0-9_-]+$/;
-    return regex.test(name);
-  };
-
   const handleChange = (textChangeEvent: ChangeEvent<HTMLInputElement>) => {
     const newValue = textChangeEvent.target.value.toLowerCase();
 
