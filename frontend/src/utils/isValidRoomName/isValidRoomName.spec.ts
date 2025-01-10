@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import validateRoomName from './validateRoomName';
+import isValidRoomName from './isValidRoomName';
 
-describe('validateRoomName', () => {
+describe('isValidRoomName', () => {
   const testCases = [
     { input: 'room_name', expected: true },
     { input: 'room+name', expected: true },
@@ -14,7 +14,7 @@ describe('validateRoomName', () => {
 
   testCases.forEach(({ input, expected }) => {
     it(`should return ${expected} for "${input}"`, () => {
-      const result = validateRoomName(input);
+      const result = isValidRoomName(input);
       expect(result).toBe(expected);
     });
   });

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import useUserContext from '../../../hooks/useUserContext';
 import { UserType } from '../../../Context/user';
 import useRoomName from '../../../hooks/useRoomName';
-import validateRoomName from '../../../utils/validateRoomName';
+import isValidRoomName from '../../../utils/isValidRoomName';
 
 export type UserNameInputProps = {
   username: string;
@@ -68,8 +68,7 @@ const UsernameInput = ({ username, setUsername }: UserNameInputProps): ReactElem
   const handleJoinClick = (event: MouseEvent) => {
     event.preventDefault();
     if (validateForm() && roomName) {
-      const validatedRoomName = validateRoomName(roomName);
-      if (!validatedRoomName) {
+      if (!isValidRoomName(roomName)) {
         return;
       }
       setUser((prevUser: UserType) => ({

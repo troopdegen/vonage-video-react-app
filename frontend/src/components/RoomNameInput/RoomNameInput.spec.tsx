@@ -67,21 +67,6 @@ describe('RoomNameInputComponent', () => {
       });
     });
   });
-  //   render(
-  //     <RoomNameInput
-  //       setRoomName={setRoomName}
-  //       setHasError={setHasError}
-  //       roomName="test-room"
-  //       hasError={false}
-  //     />
-  //   );
-
-  //   const input = screen.getByRole('textbox');
-  //   fireEvent.change(input, { target: { value: 'new-test-room' } });
-
-  //   expect(setHasError).toHaveBeenCalledWith(false);
-  //   expect(setRoomName).toHaveBeenCalledWith('new-test-room');
-  // });
 
   it('should set the room name as lowercase even if the parameter is a mix of both lower and upper case', () => {
     render(

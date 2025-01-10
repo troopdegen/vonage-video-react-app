@@ -1,7 +1,7 @@
 import { SetStateAction, Dispatch, ReactElement, ChangeEvent } from 'react';
 import { InputAdornment, TextField } from '@mui/material';
 import { Keyboard } from '@mui/icons-material';
-import validateRoomName from '../../utils/validateRoomName';
+import isValidRoomName from '../../utils/isValidRoomName';
 
 export type RoomNameInputProps = {
   setRoomName: Dispatch<SetStateAction<string>>;
@@ -37,7 +37,7 @@ const RoomNameInput = ({
       return;
     }
 
-    if (validateRoomName(newValue)) {
+    if (isValidRoomName(newValue)) {
       setHasError(false);
       setRoomName(newValue);
     } else {
