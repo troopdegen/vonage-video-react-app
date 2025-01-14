@@ -2,7 +2,7 @@ name: check-pull-request-title
 
 on:
   pull_request:
-    types: [assigned, edited, opened, synchronize, reopened]
+    types: [edited]
 
 jobs:
   run:
