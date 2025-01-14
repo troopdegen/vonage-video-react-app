@@ -4,12 +4,6 @@ on:
   pull_request:
     types: [assigned, edited, opened, synchronize, reopened]
 
-permissions:
-  contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   run:
     runs-on: [self-hosted]
