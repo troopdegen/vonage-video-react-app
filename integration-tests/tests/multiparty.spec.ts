@@ -133,6 +133,7 @@ test.describe('display name for screenshare', () => {
     });
 
     await pageOne.waitForSelector('.publisher', { state: 'visible' });
+    await pageTwo.waitForSelector('.subscriber', { state: 'visible' });
     const screenshareButton = await pageOne.getByTestId('ScreenShareIcon');
     await screenshareButton.click();
 
