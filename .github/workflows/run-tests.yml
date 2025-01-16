@@ -117,5 +117,4 @@ jobs:
         if: steps.check-skip-ci.outputs.result == 'false'
         run: |
           Xvfb :99 & export DISPLAY=:99
-          yarn playwright install --with-deps
           yarn test:integration

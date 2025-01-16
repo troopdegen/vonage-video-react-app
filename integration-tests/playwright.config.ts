@@ -69,7 +69,7 @@ export default defineConfig({
         channel: 'chrome',
         launchOptions: {
           headless: true,
-          args: fakeDeviceChromiumFlags,
+          args: ['fakeDeviceChromiumFlags', '--headless=new'],
         },
       },
     },
