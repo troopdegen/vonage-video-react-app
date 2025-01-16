@@ -4,10 +4,31 @@ const { exec } = require('child_process');
 const startElectronApp = require('./electronHelper');
 
 module.exports = async () => {
+  const isGoogleChromeFakeDevices = process.argv.some((arg) =>
+    arg.includes('--project=Google Chrome Fake Devices')
+  );
   const isOperaProject = process.argv.some((arg) => arg.includes('--project=Opera'));
   const isElectronProject = process.argv.some((arg) => arg.includes('--project=Electron'));
   const isMac = process.platform === 'darwin';
   const executablePath = isMac ? '/Applications/Opera.app/Contents/MacOS/Opera' : '/usr/bin/opera';
+
+  if (isGoogleChromeFakeDevices) {
+    const projectType = process.env.PROJECT_TYPE || 'Google Chrome Fake Devices';
+    process.env.PROJECT_TYPE = projectType;
+
+    try {
+      const browser = await chromium.launch({
+        headless: true,
+        fakeDeviceChromiumFlags,
+      });
+      global.browser = browser;
+      const page = await browser.newPage();
+      await page.goto('http://your-application-url');
+    } catch (error) {
+      console.error('Error launching Google Chrome Fake Devices:', error);
+    }
+  }
+
   if (isOperaProject) {
     const projectType = process.env.PROJECT_TYPE || 'Opera';
     process.env.PROJECT_TYPE = projectType;

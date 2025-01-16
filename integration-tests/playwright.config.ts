@@ -67,10 +67,6 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         viewport: { width, height },
         channel: 'chrome',
-        launchOptions: {
-          headless: true,
-          args: ['fakeDeviceChromiumFlags', '--headless=new'],
-        },
       },
     },
     {
