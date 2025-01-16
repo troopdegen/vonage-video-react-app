@@ -66,6 +66,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width, height },
+        channel: 'chrome',
         launchOptions: {
           args: fakeDeviceChromiumFlags,
         },
