@@ -48,7 +48,6 @@ jobs:
           echo "Check chrome version"
           /usr/bin/google-chrome-stable --version
           echo "Chrome latest downloaded and installed"
-          sudo apt update && sudo apt install google-chrome-headless-shell
 
       - name: Install edge latest
         if: steps.check-skip-ci.outputs.result == 'false'

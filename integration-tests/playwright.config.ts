@@ -68,7 +68,7 @@ export default defineConfig({
         viewport: { width, height },
         channel: 'chrome',
         launchOptions: {
-          executablePath: '/usr/bin/google-chrome-headless-shell',
+          headless: true,
           args: fakeDeviceChromiumFlags,
         },
       },
