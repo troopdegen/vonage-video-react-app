@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   run:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-22.04
     steps:
       - name: Validate PR title
         run: |
