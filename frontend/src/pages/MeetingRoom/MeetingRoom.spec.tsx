@@ -184,6 +184,17 @@ describe('MeetingRoom', () => {
     expect(screen.getByTestId('publisher-container')).toBeInTheDocument();
   });
 
+  it('should display spinner until session is connected', () => {
+    sessionContext.connected = false;
+    publisherContext.publisher = mockPublisher;
+    const { rerender } = render(<MeetingRoomWithProviders />);
+    rerender(<MeetingRoomWithProviders />);
+    expect(screen.getByTestId('progress-spinner')).toBeInTheDocument();
+    sessionContext.connected = true;
+    rerender(<MeetingRoomWithProviders />);
+    expect(screen.queryByTestId('progress-spinner')).not.toBeInTheDocument();
+  });
+
   it('should hide subscribers and show participant hidden tile', () => {
     sessionContext.connected = true;
     sessionContext.layoutMode = 'active-speaker';
@@ -286,7 +297,11 @@ describe('MeetingRoom', () => {
   });
 
   it('should redirect user to goodbye page if unable to publish', () => {
-    publisherContext.isPublishingError = true;
+    const publishingBlockedError = {
+      header: 'Difficulties joining room',
+      caption: PUBLISHING_BLOCKED_CAPTION,
+    };
+    publisherContext.publishingError = publishingBlockedError;
     render(<MeetingRoomWithProviders />);
 
     expect(mockedNavigate).toHaveBeenCalledOnce();
