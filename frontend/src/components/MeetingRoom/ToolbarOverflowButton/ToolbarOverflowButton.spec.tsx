@@ -12,6 +12,7 @@ vi.mock('../../../hooks/useRoomName');
 const mockUseSessionContext = useSessionContext as Mock<[], SessionContextType>;
 const mockUseUserContext = useUserContext as Mock<[], UserContextType>;
 const mockSetUser = vi.fn();
+
 const defaultUserContext = {
   user: {
     defaultSettings: {
@@ -34,16 +35,28 @@ describe('ToolbarOverflowButton', () => {
   });
 
   it('renders', () => {
-    render(<ToolbarOverflowButton />);
+    render(
+      <ToolbarOverflowButton
+        toggleShareScreen={vi.fn()}
+        isSharingScreen={false}
+        toolbarButtonsCount={0}
+      />
+    );
     expect(screen.queryByTestId('hidden-toolbar-items')).toBeInTheDocument();
   });
 
   it('toggling shows and hides the toolbar buttons', () => {
-    render(<ToolbarOverflowButton />);
+    render(
+      <ToolbarOverflowButton
+        toggleShareScreen={vi.fn()}
+        isSharingScreen={false}
+        toolbarButtonsCount={0}
+      />
+    );
 
-    expect(screen.queryByTestId('layout-button')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('emoji-grid-button')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('archiving-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('layout-button')).not.toBeVisible();
+    expect(screen.queryByTestId('emoji-grid-button')).not.toBeVisible();
+    expect(screen.queryByTestId('archiving-button')).not.toBeVisible();
 
     act(() => {
       screen.getByTestId('hidden-toolbar-items').click();
@@ -55,8 +68,15 @@ describe('ToolbarOverflowButton', () => {
   });
 
   it('should have the unread messages badge present', () => {
-    render(<ToolbarOverflowButton />);
+    render(
+      <ToolbarOverflowButton
+        toggleShareScreen={vi.fn()}
+        isSharingScreen={false}
+        toolbarButtonsCount={0}
+      />
+    );
 
-    expect(screen.getByTestId('chat-button-unread-count')).toBeInTheDocument();
+    // We expect the ChatButton in the ToolbarOverflowMenu and the ToolbarOverflowButton to have an unread messages badge present
+    expect(screen.queryAllByTestId('chat-button-unread-count').length).toBe(2);
   });
 });

@@ -6,9 +6,9 @@ import ToolbarButton from '../ToolbarButton';
 import PopupDialog, { DialogTexts } from '../PopupDialog';
 import { startArchiving, stopArchiving } from '../../../api/archiving';
 import useSessionContext from '../../../hooks/useSessionContext';
-import useIsSmallViewport from '../../../hooks/useIsSmallViewport';
 
 export type ArchivingButtonProps = {
+  isOverflowButton?: boolean;
   handleClick?: () => void;
 };
 
@@ -18,17 +18,20 @@ export type ArchivingButtonProps = {
  * Displays a button and handles the archiving functionality. If a meeting is currently being recorded,
  * will confirm that a user wishes to stop the recording. If a meeting is not being recorded, prompts
  * the user before starting the archive.
- * @param {ArchivingButtonProps} props - The props for the component.
- *  @property {() => void} handleClick - (optional) click handler that closes the overflow menu in small view port devices.
+ * @param {ArchivingButtonProps} props - the props for the component
+ *  @property {boolean} isOverflowButton - (optional) whether the button is in the ToolbarOverflowMenu
+ *  @property {(event?: MouseEvent | TouchEvent) => void} handleClick - (optional) click handler that closes the overflow menu in small viewports.
  * @returns {ReactElement} - The ArchivingButton component.
  */
-const ArchivingButton = ({ handleClick }: ArchivingButtonProps): ReactElement => {
+const ArchivingButton = ({
+  isOverflowButton = false,
+  handleClick,
+}: ArchivingButtonProps): ReactElement => {
   const roomName = useRoomName();
   const { archiveId } = useSessionContext();
   const isRecording = !!archiveId;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const title = isRecording ? 'Stop recording' : 'Start recording';
-  const isSmallViewport = useIsSmallViewport();
   const handleButtonClick = () => {
     setIsModalOpen((prev) => !prev);
   };
@@ -52,7 +55,9 @@ const ArchivingButton = ({ handleClick }: ArchivingButtonProps): ReactElement =>
 
   const handleClose = () => {
     setIsModalOpen(false);
-    if (isSmallViewport && handleClick) {
+
+    // If the ArchivingButton is in the ToolbarOverflowMenu, we close the modal and the menu
+    if (isOverflowButton && handleClick) {
       handleClick();
     }
   };
@@ -90,9 +95,9 @@ const ArchivingButton = ({ handleClick }: ArchivingButtonProps): ReactElement =>
             />
           }
           sx={{
-            marginTop: isSmallViewport ? '0px' : '4px',
+            marginTop: isOverflowButton ? '0px' : '4px',
           }}
-          isSmallViewPort={isSmallViewport}
+          isOverflowButton={isOverflowButton}
         />
       </Tooltip>
       <PopupDialog

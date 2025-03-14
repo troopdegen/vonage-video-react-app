@@ -10,6 +10,7 @@ export type ScreenShareButtonProps = {
   toggleScreenShare: () => void;
   isSharingScreen: boolean;
   isViewingScreenShare: boolean;
+  isOverflowButton?: boolean;
 };
 
 /**
@@ -20,12 +21,14 @@ export type ScreenShareButtonProps = {
  *  @property {Function} toggleScreenShare - Function to toggle screenshare.
  *  @property {boolean} isSharingScreen - Whether the user is sharing their screen or not.
  *  @property {boolean} isViewingScreenShare - Indicates whether there is a screenshare currently in the session.
+ *  @property {boolean} isOverflowButton - (optional) whether the button is in the ToolbarOverflowMenu
  * @returns {ReactElement} - The ScreenSharingButton component
  */
 const ScreenSharingButton = ({
   toggleScreenShare,
   isSharingScreen,
   isViewingScreenShare,
+  isOverflowButton = false,
 }: ScreenShareButtonProps): ReactElement | false => {
   const title = isSharingScreen ? 'Stop screen share' : 'Start screen share';
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -51,8 +54,10 @@ const ScreenSharingButton = ({
   };
 
   return (
+    // Screensharing relies on the getDisplayMedia browser API which is unsupported on mobile devices
+    // See: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia#browser_compatibility
     !isMobile() && (
-      <div>
+      <>
         <Tooltip title={title} aria-label="add">
           <ToolbarButton
             onClick={handleButtonClick}
@@ -64,6 +69,11 @@ const ScreenSharingButton = ({
                 <ScreenOff className="text-red-500" />
               )
             }
+            sx={{
+              marginTop: isOverflowButton ? '0px' : '4px',
+              marginLeft: isOverflowButton ? '12px' : '0px',
+            }}
+            isOverflowButton={isOverflowButton}
           />
         </Tooltip>
         {isViewingScreenShare && (
@@ -74,7 +84,7 @@ const ScreenSharingButton = ({
             actionText={actionText}
           />
         )}
-      </div>
+      </>
     )
   );
 };
