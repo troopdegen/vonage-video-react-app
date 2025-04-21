@@ -7,6 +7,7 @@ import { DEVICE_ACCESS_STATUS } from '../../utils/constants';
 import DeviceAccessAlert from '../../components/DeviceAccessAlert';
 import Banner from '../../components/Banner';
 import useIsSmallViewport from '../../hooks/useIsSmallViewport';
+import { getStorageItem, STORAGE_KEYS } from '../../utils/storage';
 
 /**
  * WaitingRoom Component
@@ -29,7 +30,7 @@ const WaitingRoom = (): ReactElement => {
   const [openAudioInput, setOpenAudioInput] = useState<boolean>(false);
   const [openVideoInput, setOpenVideoInput] = useState<boolean>(false);
   const [openAudioOutput, setOpenAudioOutput] = useState<boolean>(false);
-  const [username, setUsername] = useState(window.localStorage.getItem('username') ?? '');
+  const [username, setUsername] = useState(getStorageItem(STORAGE_KEYS.USERNAME) ?? '');
   const isSmallViewport = useIsSmallViewport();
 
   useEffect(() => {
@@ -81,13 +82,13 @@ const WaitingRoom = (): ReactElement => {
   };
 
   return (
-    <div className="h-full w-full bg-white flex flex-col" data-testid="waitingRoom">
+    <div className="flex size-full flex-col bg-white" data-testid="waitingRoom">
       <Banner />
       <div className="flex w-full">
-        <div className="w-full flex justify-center mb-8">
-          <div className="sm:min-h-[90vh] flex flex-col md:flex-row items-center justify-center w-full">
+        <div className="flex w-full justify-center">
+          <div className="flex w-full flex-col items-center justify-center sm:min-h-[90vh] md:flex-row">
             <div
-              className={`flex-col max-w-full ${isSmallViewport ? '' : 'h-[394px]'} sm: inline-flex`}
+              className={`max-w-full flex-col ${isSmallViewport ? '' : 'h-[394px]'} sm: inline-flex`}
             >
               <VideoContainer username={username} />
               {accessStatus === DEVICE_ACCESS_STATUS.ACCEPTED && (

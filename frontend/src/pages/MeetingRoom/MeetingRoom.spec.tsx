@@ -18,8 +18,13 @@ import useLayoutManager, { GetLayout } from '../../hooks/useLayoutManager';
 import useSessionContext from '../../hooks/useSessionContext';
 import useActiveSpeaker from '../../hooks/useActiveSpeaker';
 import useScreenShare, { UseScreenShareType } from '../../hooks/useScreenShare';
-import { PUBLISHING_BLOCKED_CAPTION } from '../../utils/constants';
+import { PUBLISHING_BLOCKED_CAPTION, RIGHT_PANEL_BUTTON_COUNT } from '../../utils/constants';
 import useIsSmallViewport from '../../hooks/useIsSmallViewport';
+import useToolbarButtons, {
+  UseToolbarButtons,
+  UseToolbarButtonsProps,
+} from '../../hooks/useToolbarButtons';
+import usePublisherOptions from '../../Context/PublisherProvider/usePublisherOptions';
 
 const mockedNavigate = vi.fn();
 const mockedParams = { roomName: 'test-room-name' };
@@ -43,6 +48,8 @@ vi.mock('../../hooks/useSessionContext.tsx');
 vi.mock('../../hooks/useActiveSpeaker.tsx');
 vi.mock('../../hooks/useScreenShare.tsx');
 vi.mock('../../hooks/useIsSmallViewport');
+vi.mock('../../hooks/useToolbarButtons');
+vi.mock('../../Context/PublisherProvider/usePublisherOptions');
 
 const mockUseDevices = useDevices as Mock<
   [],
@@ -65,6 +72,10 @@ const mockUseSessionContext = useSessionContext as Mock<[], SessionContextType>;
 const mockUseActiveSpeaker = useActiveSpeaker as Mock<[], string | undefined>;
 const mockUseScreenShare = useScreenShare as Mock<[], UseScreenShareType>;
 const mockUseIsSmallViewport = useIsSmallViewport as Mock<[], boolean>;
+const mockUseToolbarButtons = useToolbarButtons as Mock<
+  [UseToolbarButtonsProps],
+  UseToolbarButtons
+>;
 
 const MeetingRoomWithProviders = () => (
   <UserProvider>
@@ -92,6 +103,7 @@ const createSubscriberWrapper = (id: string): SubscriberWrapper => {
     id,
     element: document.createElement('video'),
     isScreenshare: false,
+    isPinned: false,
     subscriber: mockSubscriber,
   };
 };
@@ -100,6 +112,7 @@ describe('MeetingRoom', () => {
   let mockPublisher: Publisher;
   let sessionContext: SessionContextType;
   let publisherContext: PublisherContextType;
+
   beforeEach(() => {
     mockUseUserContext.mockImplementation(() => mockUserContext);
     mockPublisher = Object.assign(new EventEmitter(), {
@@ -116,12 +129,13 @@ describe('MeetingRoom', () => {
       initializeLocalPublisher: vi.fn(() => {
         publisherContext.publisher = mockPublisher;
       }) as unknown as () => void,
-    } as PublisherContextType;
+    } as unknown as PublisherContextType;
     mockUsePublisherContext.mockImplementation(() => publisherContext);
     mockUseDevices.mockReturnValue({
       getAllMediaDevices: vi.fn(),
       allMediaDevices,
     });
+    (usePublisherOptions as Mock).mockReturnValue({});
 
     sessionContext = {
       joinRoom: vi.fn(),
@@ -135,7 +149,7 @@ describe('MeetingRoom', () => {
       closeRightPanel: vi.fn(),
     } as unknown as SessionContextType;
     mockUseSpeakingDetector.mockReturnValue(false);
-    mockUseLayoutManager.mockImplementation(() => (dimensions, elements) => {
+    mockUseLayoutManager.mockImplementation(() => (_dimensions, elements) => {
       return Array(elements.length).fill({
         height: 720,
         left: 0,
@@ -152,6 +166,16 @@ describe('MeetingRoom', () => {
       screensharingPublisher: null,
     });
     mockUseIsSmallViewport.mockImplementation(() => false);
+    mockUseToolbarButtons.mockImplementation(
+      ({ numberOfToolbarButtons }: UseToolbarButtonsProps) => {
+        const renderedToolbarButtons: UseToolbarButtons = {
+          displayTimeRoomName: true,
+          centerButtonLimit: numberOfToolbarButtons - RIGHT_PANEL_BUTTON_COUNT,
+          rightButtonLimit: numberOfToolbarButtons,
+        };
+        return renderedToolbarButtons;
+      }
+    );
   });
 
   it('should render', () => {
@@ -241,7 +265,7 @@ describe('MeetingRoom', () => {
     sessionContext.layoutMode = 'active-speaker';
     const [sub1, sub2, sub3] = Array(3)
       .fill(0)
-      .map((s, index) => createSubscriberWrapper(`sub${index + 1}`));
+      .map((_s, index) => createSubscriberWrapper(`sub${index + 1}`));
     sessionContext.subscriberWrappers = [sub1];
     publisherContext.publisher = mockPublisher;
     const { rerender } = render(<MeetingRoomWithProviders />);
@@ -269,7 +293,7 @@ describe('MeetingRoom', () => {
     rerender(<MeetingRoomWithProviders />);
     sessionContext.unreadCount = 4;
     rerender(<MeetingRoomWithProviders />);
-    expect(screen.getByTestId('chat-toggle-unread-count')).toHaveTextContent('4');
+    expect(screen.queryAllByTestId('chat-button-unread-count')[0]).toHaveTextContent('4');
   });
 
   describe('video quality problem alert', () => {

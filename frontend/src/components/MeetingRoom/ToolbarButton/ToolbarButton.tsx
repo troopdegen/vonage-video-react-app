@@ -7,6 +7,8 @@ export type ToolbarButtonProps = {
     | ((event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>) => void);
   icon: ReactElement;
   sx?: SxProps;
+  id?: string;
+  isOverflowButton?: boolean;
 };
 
 /**
@@ -15,14 +17,16 @@ export type ToolbarButtonProps = {
  * @param {ToolbarButtonProps} props - props for the component
  *   @property {Function} onClick - on click handler
  *   @property {ReactElement} icon - MUI Icon for button
- *   @property {SxProps} sx- optional MUI style object
+ *   @property {SxProps} sx - (optional) MUI style object
+ *   @property {string} id - (optional) the data-testid used in unit tests
+ *   @property {boolean} isOverflowButton - (optional) whether the button is in the ToolbarOverflowMenu
  * @returns {ReactElement}
  */
 const ToolbarButton = forwardRef(function ToolbarButton(
   props: ToolbarButtonProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
-  const { icon: Icon, sx = {}, ...rest } = props;
+  const { icon: Icon, sx = {}, isOverflowButton, ...rest } = props;
 
   return (
     <IconButton
@@ -34,8 +38,8 @@ const ToolbarButton = forwardRef(function ToolbarButton(
         marginLeft: '0px',
         marginTop: '4px',
         marginRight: '12px',
-        width: '48px',
-        height: '48px',
+        width: isOverflowButton ? '35px' : '48px',
+        height: isOverflowButton ? '35px' : '48px',
         backgroundColor: 'rgba(60, 64, 67, 0.55)',
         '&:hover': {
           backgroundColor: 'rgba(60, 64, 67, 0.42)',

@@ -32,8 +32,8 @@ const SmallViewportHeader = (): ReactElement => {
   };
   return (
     <div
-      className="flex items-center justify-between px-4 pt-4 bg-darkGray-100 text-white"
-      data-testId="smallViewportHeader"
+      className="flex items-center justify-between bg-darkGray-100 px-4 pt-4 text-white"
+      data-testid="smallViewportHeader"
     >
       <div className="flex items-center space-x-2 px-1">
         {isRecording && <RadioButtonCheckedIcon className="text-red-500" />}

@@ -3,6 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { useLocation } from 'react-router-dom';
 import useSpeakingDetector from '../../../hooks/useSpeakingDetector';
 import Toolbar, { ToolbarProps } from './Toolbar';
+import isReportIssueEnabled from '../../../utils/isReportIssueEnabled';
+import useToolbarButtons, {
+  UseToolbarButtons,
+  UseToolbarButtonsProps,
+} from '../../../hooks/useToolbarButtons';
+import { RIGHT_PANEL_BUTTON_COUNT } from '../../../utils/constants';
 
 const mockedRoomName = { roomName: 'test-room-name' };
 
@@ -13,8 +19,15 @@ vi.mock('react-router-dom', () => ({
 }));
 
 vi.mock('../../../hooks/useSpeakingDetector');
+vi.mock('../../../utils/isReportIssueEnabled');
+vi.mock('../../../hooks/useToolbarButtons');
 
 const mockUseSpeakingDetector = useSpeakingDetector as Mock<[], boolean>;
+const mockIsReportIssueEnabled = isReportIssueEnabled as Mock<[], boolean>;
+const mockUseToolbarButtons = useToolbarButtons as Mock<
+  [UseToolbarButtonsProps],
+  UseToolbarButtons
+>;
 
 describe('Toolbar', () => {
   beforeEach(() => {
@@ -22,11 +35,24 @@ describe('Toolbar', () => {
       state: mockedRoomName,
     });
     mockUseSpeakingDetector.mockReturnValue(false);
+    mockIsReportIssueEnabled.mockReturnValue(false);
+    mockUseToolbarButtons.mockImplementation(
+      ({ numberOfToolbarButtons }: UseToolbarButtonsProps) => {
+        const renderedToolbarButtons: UseToolbarButtons = {
+          displayTimeRoomName: true,
+          centerButtonLimit: numberOfToolbarButtons - RIGHT_PANEL_BUTTON_COUNT,
+          rightButtonLimit: numberOfToolbarButtons,
+        };
+        return renderedToolbarButtons;
+      }
+    );
   });
+
   afterAll(() => {
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
   });
+
   const defaultProps: ToolbarProps = {
     toggleShareScreen: vi.fn(),
     isSharingScreen: false,
@@ -38,19 +64,39 @@ describe('Toolbar', () => {
   };
 
   it('does not render the Report Issue button if it is configured to be disabled', () => {
-    vi.stubEnv('VITE_ENABLE_REPORT_ISSUE', 'false');
-    render(<Toolbar {...defaultProps} />);
-    expect(screen.queryByTestId('report-issue-button')).not.toBeInTheDocument();
-  });
-
-  it('does not render the Report Issue button if the configuration is not defined', () => {
     render(<Toolbar {...defaultProps} />);
     expect(screen.queryByTestId('report-issue-button')).not.toBeInTheDocument();
   });
 
   it('renders the Report Issue button if it is configured to be enabled', () => {
-    vi.stubEnv('VITE_ENABLE_REPORT_ISSUE', 'true');
+    mockIsReportIssueEnabled.mockReturnValue(true);
     render(<Toolbar {...defaultProps} />);
     expect(screen.getByTestId('report-issue-button')).toBeInTheDocument();
+  });
+
+  it('on a small viewport, displays the ToolbarOverflowButton button', () => {
+    mockUseToolbarButtons.mockReturnValue({
+      displayTimeRoomName: false,
+      centerButtonLimit: 0,
+      rightButtonLimit: 0,
+    });
+
+    render(<Toolbar {...defaultProps} />);
+
+    expect(screen.queryByTestId('hidden-toolbar-items')).toBeVisible();
+
+    expect(screen.queryByTestId('archiving-button')).not.toBeVisible();
+    expect(screen.queryByTestId('screensharing-button')).not.toBeVisible();
+    expect(screen.queryByTestId('archiving-button')).not.toBeVisible();
+    expect(screen.queryByTestId('emoji-grid-button')).not.toBeVisible();
+  });
+
+  it('on a normal viewport, displays all of the toolbar buttons', () => {
+    render(<Toolbar {...defaultProps} />);
+
+    expect(screen.queryByTestId('archiving-button')).toBeVisible();
+    expect(screen.queryByTestId('screensharing-button')).toBeVisible();
+    expect(screen.queryByTestId('archiving-button')).toBeVisible();
+    expect(screen.queryByTestId('emoji-grid-button')).toBeVisible();
   });
 });

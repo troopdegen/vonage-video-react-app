@@ -7,6 +7,7 @@ import useUserContext from '../../../hooks/useUserContext';
 import { UserType } from '../../../Context/user';
 import useRoomName from '../../../hooks/useRoomName';
 import isValidRoomName from '../../../utils/isValidRoomName';
+import { setStorageItem, STORAGE_KEYS } from '../../../utils/storage';
 
 export type UserNameInputProps = {
   username: string;
@@ -78,7 +79,7 @@ const UsernameInput = ({ username, setUsername }: UserNameInputProps): ReactElem
           name: username,
         },
       }));
-      window.localStorage.setItem('username', username);
+      setStorageItem(STORAGE_KEYS.USERNAME, username);
       // This takes the user to the meeting room and allows them to enter it
       // Otherwise if they entered the room directly, they are going to be redirected back to the waiting room
       // Setting hasAccess is required so that we are not redirected back to the waiting room
@@ -92,14 +93,14 @@ const UsernameInput = ({ username, setUsername }: UserNameInputProps): ReactElem
 
   return (
     <ThemeProvider theme={theme}>
-      <form className="flex flex-col justify-center items-left md:max-w-[480px] w-full px-6 md:relative md:top-[-48px]">
-        <div className="flex items-center flex-col justify-end mt-4">
-          <div className="leading-8 mb-2 font-sans text-[28px]">Prepare to join:</div>
-          <div className="flex py-2 decoration-solid text-l flex-col content-end md:max-w-[480px] w-full">
+      <form className="flex w-full flex-col justify-center px-6 md:relative md:top-[-48px] md:max-w-[480px]">
+        <div className="mt-4 flex flex-col items-center justify-end">
+          <div className="mb-2 font-sans text-[28px] leading-8">Prepare to join:</div>
+          <div className="flex w-full flex-col content-end py-2 text-lg decoration-solid md:max-w-[480px]">
             <p className="truncate">{roomName}</p>
           </div>
-          <div className="leading-8 mt-6 font-sans text-[24px]">What is your name?</div>
-          <div className="w-full flex flex-wrap items-center justify-center mb-5">
+          <div className="mt-6 font-sans text-[24px] leading-8">What is your name?</div>
+          <div className="mb-5 flex w-full flex-wrap items-center justify-center">
             <TextField
               size="small"
               margin="dense"

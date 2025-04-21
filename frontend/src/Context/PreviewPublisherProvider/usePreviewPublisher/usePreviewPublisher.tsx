@@ -1,5 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Publisher, Event, initPublisher } from '@vonage/client-sdk-video';
+import {
+  Publisher,
+  Event,
+  initPublisher,
+  VideoFilter,
+  hasMediaProcessorSupport,
+  PublisherProperties,
+} from '@vonage/client-sdk-video';
 import setMediaDevices from '../../../utils/mediaDeviceUtils';
 import useDevices from '../../../hooks/useDevices';
 import usePermissions from '../../../hooks/usePermissions';
@@ -7,6 +14,8 @@ import useUserContext from '../../../hooks/useUserContext';
 import { DEVICE_ACCESS_STATUS } from '../../../utils/constants';
 import { UserType } from '../../user';
 import { AccessDeniedEvent } from '../../PublisherProvider/usePublisher/usePublisher';
+import DeviceStore from '../../../utils/DeviceStore';
+import { setStorageItem, STORAGE_KEYS } from '../../../utils/storage';
 
 type PublisherVideoElementCreatedEvent = Event<'videoElementCreated', Publisher> & {
   element: HTMLVideoElement | HTMLObjectElement;
@@ -28,7 +37,7 @@ export type PreviewPublisherContextType = {
   changeAudioSource: (deviceId: string) => void;
   changeVideoSource: (deviceId: string) => void;
   hasBlur: boolean;
-  initLocalPublisher: () => void;
+  initLocalPublisher: () => Promise<void>;
   speechLevel: number;
 };
 
@@ -47,7 +56,7 @@ export type PreviewPublisherContextType = {
  * @returns {PreviewPublisherContextType} preview context
  */
 const usePreviewPublisher = (): PreviewPublisherContextType => {
-  const { setUser } = useUserContext();
+  const { setUser, user } = useUserContext();
   const { allMediaDevices, getAllMediaDevices } = useDevices();
   const [publisherVideoElement, setPublisherVideoElement] = useState<
     HTMLVideoElement | HTMLObjectElement
@@ -56,11 +65,13 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
   const { setAccessStatus, accessStatus } = usePermissions();
   const publisherRef = useRef<Publisher | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [localBlur, setLocalBlur] = useState(false);
+  const initialLocalBlurRef = useRef<boolean>(user.defaultSettings.blur);
+  const [localBlur, setLocalBlur] = useState(user.defaultSettings.blur);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [localVideoSource, setLocalVideoSource] = useState<string | undefined>(undefined);
   const [localAudioSource, setLocalAudioSource] = useState<string | undefined>(undefined);
+  const deviceStoreRef = useRef<DeviceStore>(new DeviceStore());
 
   /* This sets the default devices in use so that the user knows what devices they are using */
   useEffect(() => {
@@ -88,6 +99,7 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
       });
     }
     setLocalBlur(!localBlur);
+    setStorageItem(STORAGE_KEYS.BACKGROUND_BLUR, JSON.stringify(!localBlur));
     if (setUser) {
       setUser((prevUser: UserType) => ({
         ...prevUser,
@@ -110,6 +122,7 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
       }
       publisherRef.current.setAudioSource(deviceId);
       setLocalAudioSource(deviceId);
+      setStorageItem(STORAGE_KEYS.AUDIO_SOURCE, deviceId);
       if (setUser) {
         setUser((prevUser: UserType) => ({
           ...prevUser,
@@ -134,6 +147,7 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
       }
       publisherRef.current.setVideoSource(deviceId);
       setLocalVideoSource(deviceId);
+      setStorageItem(STORAGE_KEYS.VIDEO_SOURCE, deviceId);
       if (setUser) {
         setUser((prevUser: UserType) => ({
           ...prevUser,
@@ -161,7 +175,6 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
 
       try {
         const permissionStatus = await window.navigator.permissions.query({
-          // @ts-expect-error The camera and microphone permissions are supported on all major browsers.
           name: deviceDeniedAccess,
         });
         permissionStatus.onchange = () => {
@@ -206,23 +219,39 @@ const usePreviewPublisher = (): PreviewPublisherContextType => {
     [calculateAudioLevel, getAllMediaDevices, handleAccessDenied, setAccessStatus]
   );
 
-  const initLocalPublisher = useCallback(() => {
+  const initLocalPublisher = useCallback(async () => {
     if (publisherRef.current) {
       return;
     }
 
-    publisherRef.current = initPublisher(
-      undefined,
-      { insertDefaultUI: false, resolution: '1280x720' },
-      (err: unknown) => {
-        if (err instanceof Error) {
-          publisherRef.current = null;
-          if (err.name === 'OT_USER_MEDIA_ACCESS_DENIED') {
-            console.error('initPublisher error: ', err);
+    const videoFilter: VideoFilter | undefined =
+      initialLocalBlurRef.current && hasMediaProcessorSupport()
+        ? {
+            type: 'backgroundBlur',
+            blurStrength: 'high',
           }
+        : undefined;
+
+    await deviceStoreRef.current.init();
+    const videoSource = deviceStoreRef.current.getConnectedDeviceId('videoinput');
+    const audioSource = deviceStoreRef.current.getConnectedDeviceId('audioinput');
+
+    const publisherOptions: PublisherProperties = {
+      insertDefaultUI: false,
+      videoFilter,
+      resolution: '1280x720',
+      audioSource,
+      videoSource,
+    };
+
+    publisherRef.current = initPublisher(undefined, publisherOptions, (err: unknown) => {
+      if (err instanceof Error) {
+        publisherRef.current = null;
+        if (err.name === 'OT_USER_MEDIA_ACCESS_DENIED') {
+          console.error('initPublisher error: ', err);
         }
       }
-    );
+    });
     addPublisherListeners(publisherRef.current);
   }, [addPublisherListeners]);
 

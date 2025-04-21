@@ -22,7 +22,7 @@ export type ChatProps = {
  */
 const Chat = ({ handleClose, isOpen }: ChatProps): ReactElement | false => {
   const { messages } = useSessionContext();
-  const heightClass = '@apply h-[calc(100vh_-_240px)]';
+  const heightClass = '@apply h-[calc(100dvh_-_240px)]';
 
   return (
     isOpen && (
@@ -44,7 +44,7 @@ const Chat = ({ handleClose, isOpen }: ChatProps): ReactElement | false => {
             })}
           </List>
         </div>
-        <div className="flex absolute bottom-0 inset-x-0">
+        <div className="absolute inset-x-0 bottom-0 flex">
           <ChatInput />
         </div>
       </>

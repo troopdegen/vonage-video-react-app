@@ -1,12 +1,13 @@
 import { Tooltip } from '@mui/material';
 import { ReactElement, useRef } from 'react';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import { blue } from '@mui/material/colors';
 import ToolbarButton from '../ToolbarButton';
-import displayOnDesktop from '../../../utils/displayOnDesktop';
 
 export type ReportIssueButtonProps = {
   handleClick: () => void;
   isOpen: boolean;
+  isOverflowButton?: boolean;
 };
 
 /**
@@ -14,25 +15,35 @@ export type ReportIssueButtonProps = {
  *
  * Displays a clickable button to open/close the ReportIssue panel.
  * @param {ReportIssueButtonProps} props - The props for the component.
+ *  @property {Function} handleClick - click handler to open the Report Issue panel
+ *  @property {boolean} isOpen - whether the Report Issue panel is open
+ *  @property {boolean} isOverflowButton - (optional) whether the button is in the ToolbarOverflowMenu
  * @returns {ReactElement} The ReportIssueButton component.
  */
-const ReportIssueButton = ({ handleClick, isOpen }: ReportIssueButtonProps): ReactElement => {
+const ReportIssueButton = ({
+  handleClick,
+  isOpen,
+  isOverflowButton = false,
+}: ReportIssueButtonProps): ReactElement => {
   const anchorRef = useRef<HTMLButtonElement>(null);
+
   return (
-    <div className={`hidden ${displayOnDesktop()} pr-3 pl-3`}>
-      <Tooltip title="Report issue" aria-label="open report issue menu">
-        <ToolbarButton
-          data-testid="report-issue-button"
-          sx={{
-            marginTop: '0px',
-            marginRight: '0px',
-          }}
-          onClick={handleClick}
-          icon={<FeedbackIcon style={{ color: `${!isOpen ? 'white' : 'rgb(138, 180, 248)'}` }} />}
-          ref={anchorRef}
-        />
-      </Tooltip>
-    </div>
+    <Tooltip
+      title={isOpen ? 'Close report issue form' : 'Open report issue form'}
+      aria-label="toggle report issue form"
+    >
+      <ToolbarButton
+        data-testid="report-issue-button"
+        sx={{
+          marginTop: '0px',
+          marginRight: '12px',
+        }}
+        onClick={handleClick}
+        icon={<FeedbackIcon sx={{ color: isOpen ? blue.A100 : 'white' }} />}
+        ref={anchorRef}
+        isOverflowButton={isOverflowButton}
+      />
+    </Tooltip>
   );
 };
 

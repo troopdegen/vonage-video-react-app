@@ -24,10 +24,11 @@ const Emoji = ({ emojiWrapper }: EmojiProps): ReactElement => {
     animationTimingFunction: 'linear',
     animationIterationCount: 1,
     maxWidth: '35%',
+    zIndex: 1,
   };
 
   return (
-    <div style={style} className="emoji ml-5 md:ml-[15%] text-5xl md:text-6xl flex flex-col">
+    <div style={style} className="ml-5 flex flex-col text-5xl md:ml-[15%] md:text-6xl">
       {emoji}
       <Chip
         label={name}
@@ -36,7 +37,7 @@ const Emoji = ({ emojiWrapper }: EmojiProps): ReactElement => {
           color: 'white',
           backgroundColor: 'rgba(60, 64, 67, 0.55)',
         }}
-        className="text-sm md:text-lg truncate"
+        className="truncate text-sm md:text-lg"
       />
     </div>
   );
