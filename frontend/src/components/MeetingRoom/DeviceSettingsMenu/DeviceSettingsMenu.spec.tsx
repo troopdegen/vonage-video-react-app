@@ -1,6 +1,6 @@
 import { act, queryByText, render, screen, waitFor } from '@testing-library/react';
 import { describe, beforeEach, it, Mock, vi, expect, afterAll } from 'vitest';
-import { MutableRefObject } from 'react';
+import { RefObject } from 'react';
 import { EventEmitter } from 'stream';
 import { hasMediaProcessorSupport } from '@vonage/client-sdk-video';
 import * as util from '../../../utils/util';
@@ -53,7 +53,7 @@ describe('DeviceSettingsMenu Component', () => {
   const mockSetIsOpen = vi.fn();
   const mockAnchorRef = {
     current: document.createElement('input'),
-  } as MutableRefObject<HTMLInputElement>;
+  } as RefObject<HTMLInputElement>;
   const mockHandleClose = vi.fn();
   let deviceChangeListener: EventEmitter;
   const mockedHasMediaProcessorSupport = vi.fn();
@@ -111,7 +111,12 @@ describe('DeviceSettingsMenu Component', () => {
       const outputDevicesElement = screen.getByTestId('output-devices');
       await waitFor(() => expect(outputDevicesElement.children).to.have.length(3));
       expect(outputDevicesElement.firstChild).toHaveTextContent('System Default');
-      expect((outputDevicesElement.firstChild as HTMLOptionElement).selected).toBe(true);
+      expect(
+        (outputDevicesElement.firstChild as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
+      expect(
+        (outputDevicesElement.children[1] as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(false);
       expect(outputDevicesElement.children[1]).toHaveTextContent(
         'Soundcore Life A2 NC (Bluetooth)'
       );
@@ -120,7 +125,9 @@ describe('DeviceSettingsMenu Component', () => {
       await act(() => (outputDevicesElement.children[2] as HTMLOptionElement).click?.());
 
       expect(mockSetAudioOutputDevice).toHaveBeenCalledWith(audioOutputDevices[2].deviceId);
-      await expect((outputDevicesElement.children[2] as HTMLOptionElement).selected).toBe(true);
+      expect(
+        (outputDevicesElement.children[2] as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
     });
 
     it('and renders the default output device if the browser does not support setting audioOutput device', async () => {
@@ -142,12 +149,16 @@ describe('DeviceSettingsMenu Component', () => {
       const outputDevicesElement = screen.getByTestId('output-devices');
       await waitFor(() => expect(outputDevicesElement.children).to.have.length(1));
       expect(outputDevicesElement.firstChild).toHaveTextContent('System Default');
-      expect((outputDevicesElement.firstChild as HTMLOptionElement).selected).toBe(true);
+      expect(
+        (outputDevicesElement.firstChild as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
 
       await act(() => (outputDevicesElement.firstChild as HTMLOptionElement).click?.());
 
       expect(mockSetAudioOutputDevice).not.toHaveBeenCalled();
-      await expect((outputDevicesElement.firstChild as HTMLOptionElement).selected).toBe(true);
+      await expect(
+        (outputDevicesElement.firstChild as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
     });
 
     it('and renders the speaker test if the browser supports audio output device selection', async () => {
@@ -216,7 +227,12 @@ describe('DeviceSettingsMenu Component', () => {
       // Check initial list is correct
       await waitFor(() => expect(outputDevicesElement.children).to.have.length(3));
       expect(outputDevicesElement.firstChild).toHaveTextContent('System Default');
-      expect((outputDevicesElement.firstChild as HTMLOptionElement).selected).toBe(true);
+      expect(
+        (outputDevicesElement.firstChild as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
+      expect(
+        (outputDevicesElement.children[1] as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(false);
       expect(outputDevicesElement.children[1]).toHaveTextContent(
         'Soundcore Life A2 NC (Bluetooth)'
       );
@@ -225,7 +241,9 @@ describe('DeviceSettingsMenu Component', () => {
       // select device 2
       await act(() => (outputDevicesElement.children[1] as HTMLOptionElement).click?.());
       expect(mockSetAudioOutputDevice).toHaveBeenCalledWith(audioOutputDevices[1].deviceId);
-      await expect((outputDevicesElement.children[1] as HTMLOptionElement).selected).toBe(true);
+      await expect(
+        (outputDevicesElement.children[1] as HTMLOptionElement).classList.contains('Mui-selected')
+      ).toBe(true);
 
       // Simulate device 2 removal
       mockGetActiveAudioOutputDevice.mockResolvedValue(audioOutputDevices[0]);
@@ -234,7 +252,12 @@ describe('DeviceSettingsMenu Component', () => {
       await act(() => deviceChangeListener.emit('devicechange'));
       await waitFor(() => expect(outputDevicesElement.children).to.have.length(2));
       expect(outputDevicesElement.firstChild).toHaveTextContent('System Default');
-      expect((outputDevicesElement.firstChild as HTMLOptionElement).selected).toBe(true);
+      expect((outputDevicesElement.firstChild as Element).classList.contains('Mui-selected')).toBe(
+        true
+      );
+      expect((outputDevicesElement.children[1] as Element).classList.contains('Mui-selected')).toBe(
+        false
+      );
       expect(outputDevicesElement.children[1]).toHaveTextContent('MacBook Pro Speakers (Built-in)');
       const removedDevice = queryByText(outputDevicesElement, 'Soundcore Life A2 NC (Bluetooth)');
       expect(removedDevice).not.toBeInTheDocument();
