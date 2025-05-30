@@ -18,6 +18,7 @@ import useRightPanel, { RightPanelActiveTab } from '../../hooks/useRightPanel';
 import {
   Credential,
   SignalEvent,
+  StreamPropertyChangedEvent,
   SubscriberAudioLevelUpdatedEvent,
   SubscriberWrapper,
 } from '../../types/session';
@@ -62,6 +63,7 @@ export type SessionContextType = {
   emojiQueue: EmojiWrapper[];
   publish: (publisher: Publisher) => Promise<void>;
   unpublish: (publisher: Publisher) => void;
+  lastStreamUpdate: StreamPropertyChangedEvent | null;
 };
 
 /**
@@ -93,6 +95,7 @@ export const SessionContext = createContext<SessionContextType>({
   emojiQueue: [],
   publish: async () => Promise.resolve(),
   unpublish: () => {},
+  lastStreamUpdate: null,
 });
 
 export type ConnectionEventType = {
@@ -120,7 +123,7 @@ const MAX_PIN_COUNT = isMobile() ? MAX_PIN_COUNT_MOBILE : MAX_PIN_COUNT_DESKTOP;
  * @returns {SessionContextType} a context provider for a publisher preview
  */
 const SessionProvider = ({ children }: SessionProviderProps): ReactElement => {
-  const [, forceUpdate] = useState<boolean>(false); // NOSONAR
+  const [lastStreamUpdate, setLastStreamUpdate] = useState<StreamPropertyChangedEvent | null>(null);
   const vonageVideoClient = useRef<null | VonageVideoClient>(null);
   const [reconnecting, setReconnecting] = useState(false);
   const [subscriberWrappers, setSubscriberWrappers] = useState<SubscriberWrapper[]>([]);
@@ -159,7 +162,7 @@ const SessionProvider = ({ children }: SessionProviderProps): ReactElement => {
     (emojiEvent: SignalEvent) => {
       setSubscriberWrappers((currentSubscriberWrappers) => {
         onEmoji(emojiEvent, currentSubscriberWrappers);
-        return currentSubscriberWrappers; // Return unchanged state
+        return [...currentSubscriberWrappers]; // Return unchanged state
       });
     },
     [onEmoji]
@@ -229,11 +232,13 @@ const SessionProvider = ({ children }: SessionProviderProps): ReactElement => {
 
   /**
    * Handles changes to stream properties. This triggers a re-render when a stream property changes
+   * @param {StreamPropertyChangedEvent} event - The event containing the stream, changed property, new value, and old value.
    */
-  const handleStreamPropertyChanged = () => {
+  const handleStreamPropertyChanged = (event: StreamPropertyChangedEvent) => {
+    const { stream, changedProperty, newValue, oldValue } = event;
     // Without a re-render during a stream change, we don't get visual indicators for a subscriber
     // muting themselves or the initials being displayed.
-    forceUpdate((prev) => !prev);
+    setLastStreamUpdate({ stream, changedProperty, newValue, oldValue });
   };
 
   // handle the disconnect from session and clean up of the session object
@@ -418,6 +423,7 @@ const SessionProvider = ({ children }: SessionProviderProps): ReactElement => {
       emojiQueue,
       publish,
       unpublish,
+      lastStreamUpdate,
     }),
     [
       activeSpeakerId,
@@ -445,6 +451,7 @@ const SessionProvider = ({ children }: SessionProviderProps): ReactElement => {
       emojiQueue,
       publish,
       unpublish,
+      lastStreamUpdate,
     ]
   );
 
