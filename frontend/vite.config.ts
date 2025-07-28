@@ -33,6 +33,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       allowedHosts: ['*', env.VITE_TUNNEL_DOMAIN],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3345',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+      },
     },
     optimizeDeps: {
       include: ['@emotion/react', '@emotion/styled', '@mui/material/Tooltip'],

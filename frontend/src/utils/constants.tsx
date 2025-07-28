@@ -3,9 +3,16 @@ import isReportIssueEnabled from './isReportIssueEnabled/isReportIssueEnabled';
 /**
  * @constant {string} API_URL - The base URL determined by the current environment.
  */
-export const API_URL = window.location.origin.includes('localhost')
-  ? 'http://localhost:3345'
-  : window.location.origin;
+export const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.origin.includes('localhost') ? 'http://localhost:3345' : window.location.origin);
+
+// Debug logging - remove after testing
+console.log('API_URL Debug:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  windowOrigin: window.location.origin,
+  finalAPIURL: API_URL,
+});
 
 /**
  * @constant {object} DEVICE_ACCESS_STATUS - An object representing various states for device access.
